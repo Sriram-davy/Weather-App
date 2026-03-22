@@ -31,6 +31,7 @@
     "@angular/build": "^21.2.3",
     "@angular/cli": "^21.2.3",
     "@angular/compiler-cli": "^21.2.0",
+    "@netlify/angular-runtime": "^2.2.0",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
     "playwright": "^1.58.2",
