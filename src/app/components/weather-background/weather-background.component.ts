@@ -1,185 +1,128 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-weather-background',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="weather-background" [ngClass]="getBackgroundClass()">
-      <!-- Clear Sky -->
-      <div *ngIf="isClearSky()" class="sun-glow">
-        <div class="sun-rays">
-          <div class="sun-ray" style="transform: rotate(0deg)"></div>
-          <div class="sun-ray" style="transform: rotate(45deg)"></div>
-          <div class="sun-ray" style="transform: rotate(90deg)"></div>
-          <div class="sun-ray" style="transform: rotate(135deg)"></div>
-          <div class="sun-ray" style="transform: rotate(180deg)"></div>
-          <div class="sun-ray" style="transform: rotate(225deg)"></div>
-          <div class="sun-ray" style="transform: rotate(270deg)"></div>
-          <div class="sun-ray" style="transform: rotate(315deg)"></div>
-        </div>
-      </div>
-      
-      <!-- Partly Cloudy -->
-      <div *ngIf="isPartlyCloudy()" class="clouds">
-        <div class="cloud cloud-1"></div>
-        <div class="cloud cloud-2"></div>
-        <div class="cloud cloud-3"></div>
-        <div class="cloud cloud-4"></div>
-      </div>
-      
-      <!-- Foggy -->
-      <div *ngIf="isFoggy()" class="fog-layers">
-        <div class="fog-layer fog-1"></div>
-        <div class="fog-layer fog-2"></div>
-        <div class="fog-layer fog-3"></div>
-      </div>
-      
-      <!-- Rainy -->
-      <div *ngIf="isRainy()" class="rain">
-        <div class="rain-drops">
-          <div *ngFor="let drop of rainDrops" class="rain-drop" [style]="getRainDropStyle(drop)"></div>
-        </div>
-      </div>
-      
-      <!-- Snowy -->
-      <div *ngIf="isSnowy()" class="snow">
-        <div class="snowflakes">
-          <div *ngFor="let flake of snowflakes" class="snowflake" [style]="getSnowflakeStyle(flake)"></div>
-        </div>
-      </div>
-      
-      <!-- Thunderstorm -->
-      <div *ngIf="isThunderstorm()" class="thunderstorm">
-        <div class="lightning-flash" *ngIf="showLightning"></div>
-        <div class="lightning-bolt" *ngIf="showBolt"></div>
-        <div class="rain-drops">
-          <div *ngFor="let drop of rainDrops" class="rain-drop" [style]="getRainDropStyle(drop)"></div>
-        </div>
-      </div>
-    </div>
-  `,
+  templateUrl: './weather-background.component.html',
   styleUrl: './weather-background.component.scss'
 })
-export class WeatherBackgroundComponent implements OnChanges {
+export class WeatherBackgroundComponent implements OnInit, OnChanges {
   @Input() weatherCondition: string | null = null;
   
-  rainDrops = Array.from({ length: 100 }, (_, i) => ({
-    left: Math.random() * 100,
-    delay: Math.random() * 2,
-    duration: 0.5 + Math.random() * 0.5,
-    opacity: 0.3 + Math.random() * 0.7
-  }));
-  
-  snowflakes = Array.from({ length: 50 }, (_, i) => ({
+  isLoaded = false;
+  lightningStrike: 'left' | 'right' | null = null;
+  isFlashing = false;
+  private lightningInterval: any;
+
+  // Step 7 Default
+  defaultParticles = Array.from({ length: 20 }, () => ({
     left: Math.random() * 100,
     delay: Math.random() * 5,
-    duration: 3 + Math.random() * 4,
-    size: 2 + Math.random() * 6,
-    opacity: 0.4 + Math.random() * 0.6
+    duration: 5 + Math.random() * 5
   }));
-  
-  showLightning = false;
-  showBolt = false;
+
+  // Step 1 Sunny
+  sunnyShimmer = Array.from({ length: 30 }, () => ({
+    left: Math.random() * 100,
+    delay: Math.random() * 5
+  }));
+
+  // Step 2 Cloudy
+  clouds = {
+    layer1: Array.from({ length: 4 }, () => ({ top: 10 + Math.random() * 20, duration: 40 + Math.random() * 15, delay: -Math.random() * 40 })),
+    layer2: Array.from({ length: 5 }, () => ({ top: 30 + Math.random() * 30, duration: 25 + Math.random() * 10, delay: -Math.random() * 25 })),
+    layer3: Array.from({ length: 4 }, () => ({ top: 60 + Math.random() * 20, duration: 12 + Math.random() * 8, delay: -Math.random() * 12 }))
+  };
+
+  // Step 3 Rainy
+  rain = {
+    heavy: Array.from({ length: 100 }, () => ({ left: Math.random() * 100, delay: Math.random() * 2, duration: 0.3 + Math.random() * 0.3 })),
+    light: Array.from({ length: 50 }, () => ({ left: Math.random() * 100, delay: Math.random() * 2, duration: 0.6 + Math.random() * 0.4 }))
+  };
+  ripples = Array.from({ length: 6 }, () => ({ left: Math.random() * 100, delay: Math.random() * 1.2 }));
+  rainClouds = Array.from({ length: 3 }, () => ({ top: Math.random() * 10, duration: 30 + Math.random() * 10, delay: -Math.random() * 30 }));
+
+  // Step 4 Snowy
+  snow = {
+    large: Array.from({ length: 25 }, () => ({ left: Math.random() * 100, delay: Math.random() * 5, duration: 5 + Math.random() * 3 })),
+    medium: Array.from({ length: 35 }, () => ({ left: Math.random() * 100, delay: Math.random() * 5, duration: 7 + Math.random() * 4 })),
+    fine: Array.from({ length: 40 }, () => ({ left: Math.random() * 100, delay: Math.random() * 5, duration: 10 + Math.random() * 5 }))
+  };
+
+  // Step 5 Thunderstorm
+  thunderClouds = Array.from({ length: 4 }, () => ({ top: Math.random() * 15, duration: 30 + Math.random() * 10 }));
+
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    // Force set isLoaded to true on start to prevent white screen
+    setTimeout(() => {
+      this.isLoaded = true;
+      this.cdr.detectChanges();
+    }, 100);
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['weatherCondition']) {
-      this.triggerLightning();
+      this.isLoaded = false;
+      
+      setTimeout(() => {
+        this.isLoaded = true;
+        this.cdr.detectChanges();
+      }, 50);
+
+      this.stopLightning();
+      if (this.isThunderstorm()) {
+        this.startLightning();
+      }
     }
   }
 
-  getBackgroundClass(): string {
-    if (!this.weatherCondition) return 'clear-sky';
-    
+  getWeatherClass(): string {
+    if (!this.weatherCondition) return 'default';
     const condition = this.weatherCondition.toLowerCase();
-    
-    if (condition.includes('clear')) return 'clear-sky';
-    if (condition.includes('partly cloudy')) return 'partly-cloudy';
-    if (condition.includes('foggy')) return 'foggy';
+    if (condition.includes('clear')) return 'sunny';
+    if (condition.includes('cloudy')) return 'cloudy';
     if (condition.includes('rainy')) return 'rainy';
     if (condition.includes('snowy')) return 'snowy';
     if (condition.includes('thunderstorm')) return 'thunderstorm';
-    
-    return 'clear-sky';
+    if (condition.includes('foggy')) return 'foggy';
+    return 'default';
   }
 
-  isClearSky(): boolean {
-    return this.weatherCondition?.toLowerCase().includes('clear') || false;
-  }
+  isClearSky(): boolean { return this.weatherCondition?.toLowerCase().includes('clear') || false; }
+  isPartlyCloudy(): boolean { return this.weatherCondition?.toLowerCase().includes('cloudy') || false; }
+  isFoggy(): boolean { return this.weatherCondition?.toLowerCase().includes('foggy') || false; }
+  isRainy(): boolean { return this.weatherCondition?.toLowerCase().includes('rainy') || false; }
+  isSnowy(): boolean { return this.weatherCondition?.toLowerCase().includes('snowy') || false; }
+  isThunderstorm(): boolean { return this.weatherCondition?.toLowerCase().includes('thunderstorm') || false; }
 
-  isPartlyCloudy(): boolean {
-    return this.weatherCondition?.toLowerCase().includes('partly cloudy') || false;
-  }
+  private startLightning(): void {
+    const strike = () => {
+      this.lightningStrike = Math.random() > 0.5 ? 'left' : 'right';
+      this.isFlashing = true;
+      this.cdr.detectChanges();
 
-  isFoggy(): boolean {
-    return this.weatherCondition?.toLowerCase().includes('foggy') || false;
-  }
-
-  isRainy(): boolean {
-    return this.weatherCondition?.toLowerCase().includes('rainy') || false;
-  }
-
-  isSnowy(): boolean {
-    return this.weatherCondition?.toLowerCase().includes('snowy') || false;
-  }
-
-  isThunderstorm(): boolean {
-    return this.weatherCondition?.toLowerCase().includes('thunderstorm') || false;
-  }
-
-  getRainDropStyle(drop: any): string {
-    return `
-      left: ${drop.left}%;
-      animation-delay: ${drop.delay}s;
-      animation-duration: ${drop.duration}s;
-      opacity: ${drop.opacity};
-    `;
-  }
-
-  getSnowflakeStyle(flake: any): string {
-    return `
-      left: ${flake.left}%;
-      animation-delay: ${flake.delay}s;
-      animation-duration: ${flake.duration}s;
-      width: ${flake.size}px;
-      height: ${flake.size}px;
-      opacity: ${flake.opacity};
-    `;
-  }
-
-  private triggerLightning(): void {
-    if (this.isThunderstorm()) {
-      // Trigger lightning flash
       setTimeout(() => {
-        this.showLightning = true;
-        setTimeout(() => {
-          this.showLightning = false;
-        }, 200);
-      }, 1000);
+        this.lightningStrike = null;
+        this.isFlashing = false;
+        this.cdr.detectChanges();
+      }, 200);
 
-      // Trigger lightning bolt
-      setTimeout(() => {
-        this.showBolt = true;
-        setTimeout(() => {
-          this.showBolt = false;
-        }, 200);
-      }, 1200);
+      const nextDelay = 3000 + Math.random() * 4000;
+      this.lightningInterval = setTimeout(strike, nextDelay);
+    };
+    this.lightningInterval = setTimeout(strike, 2000);
+  }
 
-      // Continue periodic lightning
-      setInterval(() => {
-        this.showLightning = true;
-        setTimeout(() => {
-          this.showLightning = false;
-        }, 200);
-
-        setTimeout(() => {
-          this.showBolt = true;
-          setTimeout(() => {
-            this.showBolt = false;
-          }, 200);
-        }, 200);
-      }, 4000 + Math.random() * 3000);
+  private stopLightning(): void {
+    if (this.lightningInterval) {
+      clearTimeout(this.lightningInterval);
+      this.lightningInterval = null;
     }
+    this.lightningStrike = null;
+    this.isFlashing = false;
   }
 }

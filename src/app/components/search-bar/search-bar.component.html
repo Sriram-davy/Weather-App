@@ -1,0 +1,25 @@
+<div class="search-bar">
+  <div class="search-input-container">
+    <input
+      id="search-input"
+      type="text"
+      [(ngModel)]="searchQuery"
+      (keyup.enter)="onSearch()"
+      placeholder="Enter city name..."
+      class="search-input"
+      [disabled]="isLoading"
+    />
+    <button 
+      id="search-button"
+      (click)="onSearch()" 
+      class="search-button"
+      [disabled]="!searchQuery.trim() || isLoading"
+    >
+      <span class="search-icon">🔍</span>
+    </button>
+  </div>
+  
+  <div class="error-message" *ngIf="error">
+    {{ error }}
+  </div>
+</div>

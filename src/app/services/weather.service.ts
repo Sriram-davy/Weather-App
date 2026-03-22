@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, map, catchError } from 'rxjs';
+import { Observable, throwError, map, catchError, firstValueFrom } from 'rxjs';
 import { WeatherData, GeocodingResponse, WeatherResponse } from '../models/weather.model';
+import { LoggerService } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,21 +11,29 @@ export class WeatherService {
   private readonly GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
   private readonly WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private logger: LoggerService
+  ) { }
 
   async getWeatherByCity(cityName: string): Promise<WeatherData> {
+    this.logger.debug('WeatherService: Fetching weather for:', cityName);
     const coords = await this.getCoordinates(cityName);
+    this.logger.debug('WeatherService: Got coordinates:', coords);
     const weather = await this.getWeather(coords.latitude, coords.longitude);
-    return this.mapWeatherResponse(weather, coords.name, coords.country);
+    this.logger.debug('WeatherService: Got weather response:', weather);
+    const mapped = this.mapWeatherResponse(weather, coords.name, coords.country);
+    this.logger.debug('WeatherService: Mapped weather data:', mapped);
+    return mapped;
   }
 
   private async getCoordinates(cityName: string): Promise<{ latitude: number; longitude: number; name: string; country: string }> {
     const url = `${this.GEOCODING_URL}?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`;
-    
+
     try {
-      const response = await this.http.get<GeocodingResponse>(url).toPromise();
-      
-      if (!response || response.results.length === 0) {
+      const response = await firstValueFrom(this.http.get<GeocodingResponse>(url));
+
+      if (!response || !response.results || response.results.length === 0) {
         throw new Error('City not found');
       }
 
@@ -45,10 +54,10 @@ export class WeatherService {
 
   private async getWeather(latitude: number, longitude: number): Promise<WeatherResponse> {
     const url = `${this.WEATHER_URL}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&temperature_unit=celsius&wind_speed_unit=kmh`;
-    
+
     try {
-      const response = await this.http.get<WeatherResponse>(url).toPromise();
-      
+      const response = await firstValueFrom(this.http.get<WeatherResponse>(url));
+
       if (!response || !response.current) {
         throw new Error('Weather data not available');
       }
@@ -64,7 +73,7 @@ export class WeatherService {
 
   private mapWeatherResponse(response: WeatherResponse, city: string, country: string): WeatherData {
     const { current } = response;
-    
+
     return {
       city,
       country,
