@@ -5,20 +5,20 @@
       type="text"
       [(ngModel)]="searchQuery"
       (keyup.enter)="onSearch()"
-      placeholder="Enter city name..."
+      placeholder="Search any city, village, town or country..."
       class="search-input"
       [disabled]="isLoading"
     />
-    <button 
+    <button
       id="search-button"
-      (click)="onSearch()" 
+      (click)="onSearch()"
       class="search-button"
       [disabled]="!searchQuery.trim() || isLoading"
     >
       <span class="search-icon">🔍</span>
     </button>
   </div>
-  
+
   <div class="error-message" *ngIf="error">
     {{ error }}
   </div>

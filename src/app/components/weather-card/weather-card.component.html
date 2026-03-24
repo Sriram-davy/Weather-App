@@ -1,0 +1,113 @@
+<div class="weather-card">
+
+  <!-- ── HERO SECTION ─────────────────────────────────── -->
+  <div class="hero-section">
+    <div class="location-row">
+      <h2 class="location-name">{{ weather.fullLocationName }}</h2>
+      <span class="day-night-badge" [class.night]="!weather.isDay">
+        {{ weather.isDay ? '☀️ Day' : '🌙 Night' }}
+      </span>
+    </div>
+
+    <div class="condition-row">
+      <span class="weather-icon-large">{{ weather.weatherIcon }}</span>
+      <div class="condition-text">
+        <div class="condition-label">{{ weather.conditionLabel }}</div>
+        <div class="temperature">{{ weather.temperature }}°C</div>
+        <div class="feels-like">Feels like {{ weather.feelsLike }}°C</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STATS GRID (4 cols) ───────────────────────────── -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">💧</div>
+      <div class="stat-label">Humidity</div>
+      <div class="stat-value">{{ weather.humidity }}%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💨</div>
+      <div class="stat-label">Wind</div>
+      <div class="stat-value">{{ weather.windSpeed }} km/h</div>
+      <div class="stat-sub">Gusts: {{ weather.windGusts }} km/h</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👁️</div>
+      <div class="stat-label">Visibility</div>
+      <div class="stat-value">{{ weather.visibility }} km</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">☁️</div>
+      <div class="stat-label">Cloud Cover</div>
+      <div class="stat-value">{{ weather.cloudCover }}%</div>
+    </div>
+  </div>
+
+  <!-- ── INFO GRID (additional data) ─────────────────────── -->
+  <div class="info-grid">
+    <div class="info-item">
+      <span class="info-icon">🌡️</span>
+      <div>
+        <div class="info-label">Min / Max</div>
+        <div class="info-value">{{ weather.minTemp }}° / {{ weather.maxTemp }}°C</div>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="info-icon">☀️</span>
+      <div>
+        <div class="info-label">UV Index</div>
+        <div class="info-value">{{ weather.uvIndex }} <span class="uv-badge" [class]="weather.uvLabel.toLowerCase()">{{ weather.uvLabel }}</span></div>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="info-icon">🌅</span>
+      <div>
+        <div class="info-label">Sunrise</div>
+        <div class="info-value">{{ formatTime(weather.sunrise) }}</div>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="info-icon">🌇</span>
+      <div>
+        <div class="info-label">Sunset</div>
+        <div class="info-value">{{ formatTime(weather.sunset) }}</div>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="info-icon">🧭</span>
+      <div>
+        <div class="info-label">Pressure</div>
+        <div class="info-value">{{ weather.pressure }} hPa</div>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="info-icon">💦</span>
+      <div>
+        <div class="info-label">Precipitation</div>
+        <div class="info-value">{{ weather.precipitation }} mm</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HOURLY TIMELINE ──────────────────────────────────── -->
+  <div class="hourly-section" *ngIf="weather.hourly?.length">
+    <h3 class="hourly-title">Next 12 Hours</h3>
+    <div class="hourly-strip">
+      <div class="hourly-card" *ngFor="let h of weather.hourly; let i = index"
+           [class.active]="i === 0">
+        <div class="hourly-time">{{ formatHour(h.time) }}</div>
+        <div class="hourly-icon">{{ getHourlyIcon(h.weatherCode) }}</div>
+        <div class="hourly-temp">{{ h.temperature }}°</div>
+        <div class="hourly-rain">
+          <div class="rain-prob-bar">
+            <div class="rain-prob-fill" [style.width.%]="h.precipitationProbability"></div>
+          </div>
+          <span class="rain-prob-label">{{ h.precipitationProbability }}%</span>
+        </div>
+        <div class="hourly-wind">{{ h.windSpeed }} km/h</div>
+      </div>
+    </div>
+  </div>
+
+</div>

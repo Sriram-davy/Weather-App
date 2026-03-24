@@ -1,35 +1,84 @@
-<app-weather-background [weatherCondition]="currentWeather?.condition || null"></app-weather-background>
+<app-weather-background [weatherCondition]="activeCondition"></app-weather-background>
+
+<!-- Reset button -->
+<button *ngIf="currentWeather && !conditionOverride" id="reset-button" class="reset-btn" (click)="resetApp()">
+  ↩ New Search
+</button>
 
 <div class="app-container">
+
+  <!-- ── HEADER / INTRO ──────────────────────────────────── -->
   <header class="app-header">
     <div class="title-wrapper">
-      <h1 class="main-title">Weather App</h1>
-      <p class="subtitle">Real-time forecasts with dynamic atmospheric effects</p>
+      <div class="app-logo">🌤️</div>
+      <h1 class="main-title">SkyCast</h1>
+      <p class="subtitle">Your world. Your weather. Beautifully told.</p>
     </div>
   </header>
 
+  <!-- ── MAIN CONTENT ────────────────────────────────────── -->
   <main class="app-main">
-    <button *ngIf="currentWeather" id="reset-button" class="reset-btn" (click)="resetApp()">
-      ↩ Reset
-    </button>
-    
-    <app-search-bar (search)="onSearch($event)" 
-                    [isLoading]="isLoading" 
-                    [error]="searchError"
-                    [searchQuery]="searchQuery"></app-search-bar>
-    
-    <app-weather-card 
-      *ngIf="currentWeather"
-      [weather]="currentWeather"
-    ></app-weather-card>
 
-    <div class="loading-state" *ngIf="isLoading && !currentWeather">
+    <!-- Search bar always visible -->
+    <app-search-bar
+      (search)="onSearch($event)"
+      [isLoading]="isLoading"
+      [error]="searchError">
+    </app-search-bar>
+
+    <!-- Location picker (shown when >1 candidate found) -->
+    <div class="location-picker" *ngIf="locationCandidates.length > 1">
+      <div class="picker-label">Multiple locations found — please choose one:</div>
+      <button
+        class="location-choice"
+        *ngFor="let c of locationCandidates; let i = index"
+        (click)="selectLocation(c)"
+      >
+        <span class="choice-icon">📍</span>
+        <span class="choice-name">{{ c.displayName }}</span>
+        <span class="choice-pop" *ngIf="c.population > 0">Pop: {{ formatPop(c.population) }}</span>
+      </button>
+    </div>
+
+    <!-- Loading spinner -->
+    <div class="loading-state" *ngIf="isLoading">
       <div class="spinner"></div>
       <p>Fetching weather...</p>
     </div>
+
+    <!-- Weather card -->
+    <app-weather-card
+      *ngIf="currentWeather && !isLoading"
+      [weather]="currentWeather"
+    ></app-weather-card>
+
   </main>
 
+  <!-- ── FOOTER ───────────────────────────────────────────── -->
   <footer class="app-footer">
-    <p>Made by <strong>Sriram Davuluri</strong></p>
+    <div class="footer-inner">
+      <span class="footer-credit">Crafted with precision by <strong>Sriram Davuluri</strong></span>
+      <span class="footer-dot">·</span>
+      <span class="footer-copy">© 2026 SkyCast</span>
+    </div>
+    <div class="footer-api">Powered by <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> — Open-source weather, beautifully presented.</div>
   </footer>
+
+</div>
+
+<!-- ── DEV TEST PANEL ─────────────────────────────────────── -->
+<div class="dev-panel" [class.open]="devPanelOpen">
+  <button class="dev-toggle" (click)="toggleDevPanel()" title="Toggle Dev Panel">⚙️</button>
+  <div class="dev-content" *ngIf="devPanelOpen">
+    <div class="dev-title">🛠 Weather Test</div>
+    <div class="dev-buttons">
+      <button
+        *ngFor="let c of allConditions"
+        class="dev-btn"
+        [class.active]="conditionOverride === c.key"
+        (click)="setConditionOverride(c.key)"
+      >{{ c.label }}</button>
+      <button class="dev-btn dev-reset" (click)="clearConditionOverride()">↩ Reset</button>
+    </div>
+  </div>
 </div>

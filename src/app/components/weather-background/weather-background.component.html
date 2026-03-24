@@ -1,14 +1,14 @@
 <div class="weather-background" [class.fade-in]="isLoaded" [ngClass]="getWeatherClass()">
-  
-  <!-- Step 7 — Initial / Default State -->
+
+  <!-- DEFAULT / Initial State -->
   <div *ngIf="!weatherCondition" class="default-container">
     <div *ngFor="let p of defaultParticles" class="particle"
          [style.left.%]="p.left" [style.animation-delay]="p.delay + 's'"
          [style.animation-duration]="p.duration + 's'"></div>
   </div>
 
-  <!-- Step 1 — Sunny ☀️ -->
-  <div *ngIf="isClearSky()" class="sunny-container">
+  <!-- CLEAR DAY ☀️ -->
+  <div *ngIf="isClearDay()" class="clear-day-container">
     <div class="sun-orb"></div>
     <div class="sun-rays-container">
       <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]" class="sun-ray"></div>
@@ -19,76 +19,142 @@
     </div>
   </div>
 
-  <!-- Step 2 — Partly Cloudy ⛅ -->
-  <div *ngIf="isPartlyCloudy()" class="cloudy-container">
+  <!-- CLEAR NIGHT 🌙 -->
+  <div *ngIf="isClearNight()" class="clear-night-container">
+    <div class="moon-orb"></div>
+    <div class="moon-halo"></div>
+    <div *ngFor="let s of nightStars" class="star"
+         [style.left.%]="s.left" [style.top.%]="s.top"
+         [style.animation-delay]="s.delay + 's'"
+         [style.animation-duration]="s.duration + 's'"
+         [style.width.px]="s.size" [style.height.px]="s.size"></div>
+    <div *ngFor="let c of nightClouds" class="night-cloud"
+         [style.top.%]="c.top"
+         [style.animation-duration]="c.duration + 's'"
+         [style.animation-delay]="c.delay + 's'"
+         [style.opacity]="c.opacity"></div>
+  </div>
+
+  <!-- PARTLY CLOUDY ⛅ -->
+  <div *ngIf="isPartlyCloudy()" class="partly-cloudy-container">
     <div class="partial-sun"></div>
     <div class="cloud-layer layer-1">
-      <div *ngFor="let c of clouds.layer1" class="cloud" [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'">
+      <div *ngFor="let c of clouds.layer1" class="cloud"
+           [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'">
         <div class="cloud-part"></div><div class="cloud-part"></div><div class="cloud-part"></div>
       </div>
     </div>
     <div class="cloud-layer layer-2">
-      <div *ngFor="let c of clouds.layer2" class="cloud" [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'">
+      <div *ngFor="let c of clouds.layer2" class="cloud"
+           [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'">
         <div class="cloud-part"></div><div class="cloud-part"></div><div class="cloud-part"></div>
       </div>
     </div>
     <div class="cloud-layer layer-3">
-      <div *ngFor="let c of clouds.layer3" class="cloud" [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'">
+      <div *ngFor="let c of clouds.layer3" class="cloud"
+           [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'">
         <div class="cloud-part"></div><div class="cloud-part"></div><div class="cloud-part"></div>
       </div>
     </div>
   </div>
 
-  <!-- Step 3 — Rainy 🌧️ -->
-  <div *ngIf="isRainy()" class="rainy-container">
-    <div class="storm-clouds">
-      <div *ngFor="let c of rainClouds" class="storm-cloud" [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'"></div>
-    </div>
-    <div class="rain-layer heavy">
-      <div *ngFor="let r of rain.heavy" class="rain-streak" [style.left.%]="r.left" [style.animation-delay]="r.delay + 's'" [style.animation-duration]="r.duration + 's'"></div>
-    </div>
-    <div class="rain-layer light">
-      <div *ngFor="let r of rain.light" class="rain-streak" [style.left.%]="r.left" [style.animation-delay]="r.delay + 's'" [style.animation-duration]="r.duration + 's'"></div>
-    </div>
-    <div class="puddle-ripples">
-      <div *ngFor="let ripple of ripples" class="ripple" [style.left.%]="ripple.left" [style.animation-delay]="ripple.delay + 's'"></div>
+  <!-- CLOUDY ☁️ -->
+  <div *ngIf="isCloudy()" class="cloudy-container">
+    <div class="dark-overlay"></div>
+    <div *ngFor="let c of darkClouds" class="dark-cloud"
+         [style.top.%]="c.top"
+         [style.animation-duration]="c.duration + 's'"
+         [style.animation-delay]="c.delay + 's'"
+         [style.transform]="'scale(' + c.scale + ')'">
+      <div class="cloud-part"></div><div class="cloud-part"></div><div class="cloud-part"></div>
     </div>
   </div>
 
-  <!-- Step 4 — Snowy ❄️ -->
+  <!-- FOGGY 🌫️ -->
+  <div *ngIf="isFoggy()" class="foggy-container">
+    <div class="fog-veil"></div>
+    <div *ngFor="let f of fogBanks" class="fog-bank"
+         [style.top.%]="f.top"
+         [style.animation-duration]="f.duration + 's'"
+         [style.animation-delay]="f.delay + 's'"
+         [class.drift-left]="f.direction === 'left'"
+         [class.drift-right]="f.direction === 'right'"></div>
+  </div>
+
+  <!-- DRIZZLE 🌦️ -->
+  <div *ngIf="isDrizzle()" class="drizzle-container">
+    <div class="drizzle-clouds">
+      <div *ngFor="let c of drizzleClouds" class="drizzle-cloud"
+           [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'">
+        <div class="cloud-part"></div><div class="cloud-part"></div><div class="cloud-part"></div>
+      </div>
+    </div>
+    <div *ngFor="let r of rain.drizzle" class="drizzle-streak"
+         [style.left.%]="r.left" [style.animation-delay]="r.delay + 's'"
+         [style.animation-duration]="r.duration + 's'"></div>
+  </div>
+
+  <!-- RAINY 🌧️ -->
+  <div *ngIf="isRainy()" class="rainy-container">
+    <div class="storm-clouds">
+      <div *ngFor="let c of rainClouds" class="storm-cloud"
+           [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'"></div>
+    </div>
+    <div *ngFor="let r of rain.heavy" class="rain-streak"
+         [style.left.%]="r.left" [style.animation-delay]="r.delay + 's'" [style.animation-duration]="r.duration + 's'"></div>
+    <div class="puddle-ripples">
+      <div *ngFor="let ripple of ripples" class="ripple"
+           [style.left.%]="ripple.left" [style.animation-delay]="ripple.delay + 's'"></div>
+    </div>
+  </div>
+
+  <!-- SNOWY ❄️ -->
   <div *ngIf="isSnowy()" class="snowy-container">
     <div class="snow-ground"></div>
     <div class="snow-layer large">
-      <div *ngFor="let s of snow.large" class="snowflake" [style.left.%]="s.left" [style.animation-delay]="s.delay + 's'" [style.animation-duration]="s.duration + 's'"></div>
+      <div *ngFor="let s of snow.large" class="snowflake"
+           [style.left.%]="s.left" [style.animation-delay]="s.delay + 's'" [style.animation-duration]="s.duration + 's'"></div>
     </div>
     <div class="snow-layer medium">
-      <div *ngFor="let s of snow.medium" class="snowflake" [style.left.%]="s.left" [style.animation-delay]="s.delay + 's'" [style.animation-duration]="s.duration + 's'"></div>
+      <div *ngFor="let s of snow.medium" class="snowflake"
+           [style.left.%]="s.left" [style.animation-delay]="s.delay + 's'" [style.animation-duration]="s.duration + 's'"></div>
     </div>
     <div class="snow-layer fine">
-      <div *ngFor="let s of snow.fine" class="snowflake" [style.left.%]="s.left" [style.animation-delay]="s.delay + 's'" [style.animation-duration]="s.duration + 's'"></div>
+      <div *ngFor="let s of snow.fine" class="snowflake"
+           [style.left.%]="s.left" [style.animation-delay]="s.delay + 's'" [style.animation-duration]="s.duration + 's'"></div>
     </div>
   </div>
 
-  <!-- Step 5 — Thunderstorm ⛈️ -->
+  <!-- THUNDERSTORM ⛈️ -->
   <div *ngIf="isThunderstorm()" class="thunderstorm-container">
+    <div class="storm-clouds">
+      <div *ngFor="let c of thunderClouds" class="storm-cloud"
+           [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'"></div>
+    </div>
+    <div *ngFor="let r of rain.heavy" class="rain-streak"
+         [style.left.%]="r.left" [style.animation-delay]="r.delay + 's'" [style.animation-duration]="r.duration + 's'"></div>
     <div class="lightning-bolt left" [class.strike]="lightningStrike === 'left'"></div>
     <div class="lightning-bolt right" [class.strike]="lightningStrike === 'right'"></div>
     <div class="sky-flash" [class.flash]="isFlashing"></div>
-    <div class="storm-clouds">
-      <div *ngFor="let c of thunderClouds" class="storm-cloud" [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'"></div>
-    </div>
-    <div class="rain-layer heavy">
-      <div *ngFor="let r of rain.heavy" class="rain-streak" [style.left.%]="r.left" [style.animation-delay]="r.delay + 's'" [style.animation-duration]="r.duration + 's'"></div>
-    </div>
   </div>
 
-  <!-- Step 6 — Foggy 🌫️ -->
-  <div *ngIf="isFoggy()" class="foggy-container">
-    <div class="fog-veil"></div>
-    <div class="fog-bank bank-1"></div>
-    <div class="fog-bank bank-2"></div>
-    <div class="fog-bank bank-3"></div>
-    <div class="fog-bank bank-4"></div>
+  <!-- WINDY 💨 -->
+  <div *ngIf="isWindy()" class="windy-container">
+    <div class="wind-clouds">
+      <div *ngFor="let c of windClouds" class="wind-cloud"
+           [style.top.%]="c.top" [style.animation-duration]="c.duration + 's'" [style.animation-delay]="c.delay + 's'">
+        <div class="cloud-part"></div><div class="cloud-part"></div><div class="cloud-part"></div>
+      </div>
+    </div>
+    <div *ngFor="let s of windStreaks" class="wind-streak"
+         [style.top.%]="s.top" [style.animation-delay]="s.delay + 's'"
+         [style.animation-duration]="s.duration + 's'"
+         [style.width.px]="s.width"></div>
+    <div *ngFor="let d of windDebris" class="debris"
+         [style.left.%]="d.left" [style.top.%]="d.top"
+         [style.animation-delay]="d.delay + 's'"
+         [style.animation-duration]="d.duration + 's'"
+         [style.width.px]="d.size" [style.height.px]="d.size"></div>
   </div>
 
 </div>
