@@ -1,4 +1,4 @@
-# SkyCast 🌤️
+# SkySnaps 🌤️
 > Your world. Your weather. Beautifully told.
 
 ## Live App
